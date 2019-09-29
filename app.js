@@ -55,9 +55,15 @@ app.get('/', function(req, res){
 
 // add a new record
 app.post('/customer/add', function(req, res){
+  // the form data 
   const name = req.body.name;
   const email = req.body.email;
   
+  /*  couch.uniqid()
+      Generate unique identifier(s)
+      Get one unique id
+      couch.uniqid().then(ids => ids[0]);
+  */
   couch.uniqid().then(function (ids) {
     const id = ids[0];
     couch.insert(dbName, {
