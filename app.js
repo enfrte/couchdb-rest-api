@@ -1,4 +1,5 @@
 // run `node app` to run the app
+// To do: Strip down the code to exclude the ejs part. We can monitor the db in https://docs.datadoghq.com/integrations/couch/ for example
 
 const express = require('express');
 const bodyParser = require('body-parser'); // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
@@ -13,9 +14,7 @@ const couch = new NodeCouchDb({
   }
 });
 
-const dbName = "customers";
-const viewUrl = "_design/all_customers/_view/all"; 
-
+// This just shows you what databases you can access. Outputs to the Node terminal 
 couch.listDatabases().then(
   function(dbs) {
     console.log(dbs);
@@ -36,12 +35,15 @@ app.set('views',path.join(__dirname, 'views')); // A directory or an array of di
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
 
+const dbName = "customers";
+
 // app index
 app.get('/', function(req, res){
   // res.render('index');
-  couch.get(dbName, viewUrl).then(
+  couch.get(dbName, "_design/all_customers/_view/all").then(
     function (data, headers, status) {
-      console.log(data.data.rows);
+      //console.log(data.data.rows); // if you want to see the output in the node console
+      // send a data object called customers to view/index.ejs  
       res.render('index', {
         customers: data.data.rows
       })
@@ -58,7 +60,7 @@ app.post('/customer/add', function(req, res){
   
   couch.uniqid().then(function (ids) {
     const id = ids[0];
-    couch.insert('customers', {
+    couch.insert(dbName, {
       _id: id,
       name: name,
       email: email
@@ -73,6 +75,4 @@ app.post('/customer/add', function(req, res){
   //res.send(name);
 });
 
-app.listen(3000, function(){
-  console.log('Server started on port: 3000' );
-});
+app.listen(3000, function(){ console.log('Server started on port: 3000'); });
